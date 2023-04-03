@@ -1,0 +1,261 @@
+{
+	"info": {
+		"_postman_id": "f10b1993-065e-4ab2-be2c-1a910dcfd44f",
+		"name": "HW_3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19611442"
+	},
+	"item": [
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let resp_token = pm.response.json().token;\r",
+							"\r",
+							"pm.environment.set(\"token\", resp_token);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "login",
+							"value": "Pavel",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "qwerty",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ip_port}}/login",
+					"host": [
+						"{{ip_port}}"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user_info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1) Статус код 200\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"// 2) Проверка структуры json в ответе.\r",
+							"pm.test(\"Resp is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"let req_info = JSON.parse(request.data);\r",
+							"let user_info = pm.response.json();\r",
+							"pm.test(\"Проверка наличия параметра 'person'\", function () {\r",
+							"    pm.expect(user_info).to.have.property(\"person\");\r",
+							"});\r",
+							"pm.test(\"Проверка наличия параметра 'start_qa_salary'\", function () {\r",
+							"    pm.expect(user_info).to.have.property(\"start_qa_salary\", 5000);\r",
+							"});    \r",
+							"pm.test(\"Проверка наличия параметра 'qa_salary_after_6_months'\", function () {\r",
+							"    pm.expect(user_info).to.have.property(\"qa_salary_after_6_months\", 10000);\r",
+							"});\r",
+							"pm.test(\"Проверка наличия параметра 'qa_salary_after_12_months'\", function () {\r",
+							"    pm.expect(user_info).to.have.property(\"qa_salary_after_12_months\", 14500);\r",
+							"});   \r",
+							"pm.test(\"Проверка структуры 'person'\", function () {\r",
+							"    pm.expect(user_info.person).to.have.property(\"u_age\", 24);\r",
+							"    pm.expect(user_info.person).to.have.property(\"u_name\");\r",
+							"    pm.expect(user_info.person).to.have.property(\"u_salary_1_5_year\", 20000);\r",
+							"});\r",
+							"pm.test(\"Проверка структуры 'u_name'\", function () {\r",
+							"    pm.expect(user_info.person.u_name[0]).to.eql (\"Pavel\");\r",
+							"    pm.expect(user_info.person.u_name[1]).to.eql (5000);\r",
+							"    pm.expect(user_info.person.u_name[2]).to.eql (24);\r",
+							"});       \r",
+							"\r",
+							"// 3) В ответе указаны коэффициенты умножения salary, напишите тесты по проверке правильности результата перемножения на коэффициент.\r",
+							"pm.test(\"start_qa_salary\", function () {\r",
+							"    pm.expect(user_info.start_qa_salary).to.eql(req_info.salary);\r",
+							"});\r",
+							"pm.test(\"qa_salary_after_6_months\", function () {\r",
+							"    pm.expect(user_info.qa_salary_after_6_months).to.eql(req_info.salary*2);\r",
+							"});\r",
+							"pm.test(\"qa_salary_after_12_months\", function () {\r",
+							"    pm.expect(user_info.qa_salary_after_12_months).to.eql(req_info.salary*2.9);\r",
+							"});\r",
+							"pm.test(\"u_salary_1_5_year\", function () {\r",
+							"    pm.expect(user_info.person.u_salary_1_5_year).to.eql(req_info.salary*4);\r",
+							"});\r",
+							"\r",
+							"// 4) Достать значение из поля 'u_salary_1.5_year' и передать в поле salary запроса http://162.55.220.72:5005/get_test_user\r",
+							"let salary_1_5 = user_info.person.u_salary_1_5_year;\r",
+							"pm.environment.set(\"salary_1_5\", \"salary_1_5\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"age\": 24,\r\n    \"salary\": 5000,\r\n    \"name\": \"Pavel\",\r\n    \"auth_token\": \"{{token}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{ip_port}}/user_info",
+					"host": [
+						"{{ip_port}}"
+					],
+					"path": [
+						"user_info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "new_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1) Статус код 200\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// 2) Проверка структуры json в ответе.\r",
+							"pm.test(\"Resp is JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"// 3) В ответе указаны коэффициенты умножения salary, напишите тесты по проверке правильности результата перемножения на коэффициент.\r",
+							"let req_sal = request.data;\r",
+							"let user_sal = pm.response.json();\r",
+							"pm.test(\"salary_0\", function () {\r",
+							"    pm.expect(user_sal.salary[0]).to.eql(+req_sal.salary);\r",
+							"});\r",
+							"pm.test(\"salary_1\", function () {\r",
+							"    pm.expect(+user_sal.salary[1]).to.eql(req_sal.salary*2);\r",
+							"});\r",
+							"pm.test(\"salary_2\", function () {\r",
+							"    pm.expect(+user_sal.salary[2]).to.eql(req_sal.salary*3);\r",
+							"});\r",
+							"\r",
+							"// 4) проверить, что 2-й элемент массива salary больше 1-го и 0-го\r",
+							"    let salary_2_1 = user_sal.salary[2] > user_sal.salary[1];\r",
+							"    let salary_2_0 = user_sal.salary[2] > user_sal.salary[0];\r",
+							"pm.test(\"salary_2 > salary_1\", function () {\r",
+							"    pm.expect(salary_2_1).to.eql(true);\r",
+							"});\r",
+							"pm.test(\"salary_2 > salary_0\", function () {\r",
+							"    pm.expect(salary_2_0).to.eql(true);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "age",
+							"value": "{{age}}",
+							"type": "text"
+						},
+						{
+							"key": "salary",
+							"value": "{{salary}}",
+							"type": "text"
+						},
+						{
+							"key": "name",
+							"value": "{{name}}",
+							"type": "text"
+						},
+						{
+							"key": "auth_token",
+							"value": "{{token}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{ip_port}}/new_data",
+					"host": [
+						"{{ip_port}}"
+					],
+					"path": [
+						"new_data"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "age",
+			"value": ""
+		}
+	]
+}
