@@ -511,5 +511,5 @@ pm.expect(resp_body.person.u_salary_5_years).to.eql(+req_body.salary*4.2);
 ```
 for (let i in resp_body.person) {
 console.log(i)
-	};
+};
 ```
