@@ -513,3 +513,339 @@ for (let i in resp_body.person) {
 console.log(i)
 };
 ```
+____________________        
+
+# :large_orange_diamond: HW_3
+### EP_1
+http://162.55.220.72:5005/first
+
+необходимо залогиниться
+
+POST
+
+http://162.55.220.72:5005/login
+
+login : str (кроме /)
+
+password : str
+
+Приходящий токен необходимо передать во все остальные запросы.
+```
+let resp_token = pm.response.json().token;
+pm.environment.set("token", resp_token);
+```
+
+дальше все запросы требуют наличие токена.
+
+## EP_2
+http://162.55.220.72:5005/user_info
+
+req. (RAW JSON)
+
+POST
+
+age: int
+
+salary: int
+
+name: str
+
+auth_token
+
+```
+resp.
+{'start_qa_salary':salary,
+ 'qa_salary_after_6_months': salary * 2,
+ 'qa_salary_after_12_months': salary * 2.9,
+ 'person': {'u_name':[user_name, salary, age],
+                                'u_age':age,
+                                'u_salary_1.5_year': salary * 4}
+                                }
+```
+Тесты:
+1) Статус код 200
+```
+pm.test("Status code is 200", function () {
+pm.response.to.have.status(200);
+});
+```
+2) Проверка структуры json в ответе.
+```
+pm.test("Resp is JSON", function () {
+pm.response.to.be.json;
+});
+let req_info = JSON.parse(request.data);
+let user_info = pm.response.json();
+pm.test("Проверка наличия параметра 'person'", function () {
+    pm.expect(user_info).to.have.property("person");
+});
+pm.test("Проверка наличия параметра 'start_qa_salary'", function () {
+    pm.expect(user_info).to.have.property("start_qa_salary", 5000);
+});    
+pm.test("Проверка наличия параметра 'qa_salary_after_6_months'", function () {
+    pm.expect(user_info).to.have.property("qa_salary_after_6_months", 10000);
+});
+pm.test("Проверка наличия параметра 'qa_salary_after_12_months'", function () {
+    pm.expect(user_info).to.have.property("qa_salary_after_12_months", 14500);
+});   
+pm.test("Проверка структуры 'person'", function () {
+    pm.expect(user_info.person).to.have.property("u_age", 24);
+    pm.expect(user_info.person).to.have.property("u_name");
+    pm.expect(user_info.person).to.have.property("u_salary_1_5_year", 20000);
+});
+pm.test("Проверка структуры 'u_name'", function () {
+    pm.expect(user_info.person.u_name[0]).to.eql ("Pavel");
+    pm.expect(user_info.person.u_name[1]).to.eql (5000);
+    pm.expect(user_info.person.u_name[2]).to.eql (24);
+});       
+```
+3) В ответе указаны коэффициенты умножения salary, напишите тесты по проверке правильности результата перемножения на коэффициент.
+```
+pm.test("start_qa_salary", function () {
+pm.expect(user_info.start_qa_salary).to.eql(req_info.salary);
+});
+pm.test("qa_salary_after_6_months", function () {
+pm.expect(user_info.qa_salary_after_6_months).to.eql(req_info.salary*2);
+});
+pm.test("qa_salary_after_12_months", function () {
+    pm.expect(user_info.qa_salary_after_12_months).to.eql(req_info.salary*2.9);
+});
+pm.test("u_salary_1_5_year", function () {
+    pm.expect(user_info.person.u_salary_1_5_year).to.eql(req_info.salary*4);
+});
+```
+4) Достать значение из поля 'u_salary_1.5_year' и передать в поле salary запроса http://162.55.220.72:5005/get_test_user
+```
+let salary_1_5 = user_info.person.u_salary_1_5_year;
+pm.environment.set("salary_1_5", "salary_1_5");
+```
+===================
+
+## EP_3 
+http://162.55.220.72:5005/new_data
+
+req.
+
+POST
+
+age: int
+
+salary: int
+
+name: str
+
+auth_token
+```
+Resp.
+{'name':name,
+  'age': int(age),
+  'salary': [salary, str(salary*2), str(salary*3)]}
+```
+Тесты:
+1) Статус код 200
+```
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+```
+2) Проверка структуры json в ответе.
+```
+pm.test("Resp is JSON", function () {
+    pm.response.to.be.json;
+});
+```
+3) В ответе указаны коэффициенты умножения salary, напишите тесты по проверке правильности результата перемножения на коэффициент.
+```
+let req_sal = request.data;
+let user_sal = pm.response.json();
+pm.test("salary_0", function () {
+    pm.expect(user_sal.salary[0]).to.eql(+req_sal.salary);
+});
+pm.test("salary_1", function () {
+    pm.expect(+user_sal.salary[1]).to.eql(req_sal.salary*2);
+});
+pm.test("salary_2", function () {
+    pm.expect(+user_sal.salary[2]).to.eql(req_sal.salary*3);
+});
+```
+4) проверить, что 2-й элемент массива salary больше 1-го и 0-го
+```   
+    let salary_2_1 = user_sal.salary[2] > user_sal.salary[1];
+    let salary_2_0 = user_sal.salary[2] > user_sal.salary[0];
+pm.test("salary_2 > salary_1", function () {
+    pm.expect(salary_2_1).to.eql(true);
+});
+pm.test("salary_2 > salary_0", function () {
+    pm.expect(salary_2_0).to.eql(true);
+});
+```
+===================
+## EP_4  
+http://162.55.220.72:5005/test_pet_info
+
+req.
+
+POST
+
+age: int
+
+weight: int
+
+name: str
+
+auth_token
+
+```
+Resp.
+{'name': name,
+ 'age': age,
+ 'daily_food':weight * 0.012,
+ 'daily_sleep': weight * 2.5}
+```
+
+Тесты:
+1) Статус код 200
+```
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+```
+2) Проверка структуры json в ответе.
+```
+pm.test("Resp is JSON", function () {
+    pm.response.to.be.json;
+});
+```
+3) В ответе указаны коэффициенты умножения weight, напишите тесты по проверке правильности результата перемножения на коэффициент.
+```
+let req = request.data;
+let resp = pm.response.json();
+
+    pm.test("daily_food check", function () {
+    pm.expect(resp.daily_food).to.eql(req.weight*0.012);
+});
+    pm.test("daily_sleep check", function () {
+    pm.expect(resp.daily_sleep).to.eql(req.weight*2.5);
+});
+```
+===================
+
+## EP_5  
+http://162.55.220.72:5005/get_test_user
+
+req.
+
+POST
+
+age: int
+
+salary: int
+
+name: str
+
+auth_token
+```
+Resp.
+{'name': name,
+ 'age':age,
+ 'salary': salary,
+ 'family':{'children':[['Alex', 24],['Kate', 12]],
+ 'u_salary_1.5_year': salary * 4}
+  }
+```
+Тесты:
+1) Статус код 200
+```
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+```
+2) Проверка структуры json в ответе.
+```
+pm.test("Resp is JSON", function () {
+    pm.response.to.be.json;
+});
+```
+3) Проверить что занчение поля name = значению переменной name из окружения
+```
+let resp = pm.response.json();
+pm.test("name", function () {
+    pm.expect(resp.name).to.eql(pm.environment.get("name"));
+});
+```
+4) Проверить что занчение поля age в ответе соответсвует отправленному в запросе значению поля age
+```
+let req = request.data;
+pm.test("age", function () {
+    pm.expect(resp.age).to.eql(req.age);
+});
+```
+===================
+
+## EP_6  
+http://162.55.220.72:5005/currency
+
+req.
+
+POST
+
+auth_token
+
+Resp. Передаётся список массив объектов.
+```
+[
+{"Cur_Abbreviation": str,
+ "Cur_ID": int,
+ "Cur_Name": str
+}
+…
+{"Cur_Abbreviation": str,
+ "Cur_ID": int,
+ "Cur_Name": str
+}
+]
+```
+Тесты:
+1) Можете взять любой объект из присланного списка, используйте js random.
+В объекте возьмите Cur_ID и передать через окружение в следующий запрос.
+```   
+let resp = pm.response.json();
+pm.environment.set("curr_code", Math.floor(Math.random()*resp.length));
+```
+ ===================
+
+## EP_7 
+http://162.55.220.72:5005/curr_byn
+
+req.
+
+POST
+
+auth_token
+
+curr_code: int
+
+Resp.
+```
+{
+    "Cur_Abbreviation": str
+    "Cur_ID": int,
+    "Cur_Name": str,
+    "Cur_OfficialRate": float,
+    "Cur_Scale": int,
+    "Date": str
+}
+```
+Тесты:
+1) Статус код 200
+```
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+```
+2) Проверка структуры json в ответе.
+```
+pm.test("Resp is JSON", function () {
+    pm.response.to.be.json;
+});
+```
